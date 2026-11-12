@@ -38,7 +38,7 @@ The local scripts/init.sh creates a .env file once. It does not overwrite existi
 
 ## CI validation
 
-CI checks Go formatting, module integrity, go vet, race-enabled unit tests, WebSocket byte-stream integration, shell syntax, workflow syntax, Docker build, Xray version, and generated Xray server config via xray run -test.
+CI checks Go formatting, module integrity, go vet, race-enabled unit tests, WebSocket byte-stream integration, shell syntax, workflow syntax, Docker build, Xray version, and generated Xray server and client configs via xray run -test.
 
 CI does not deploy to Cloud Run. A green run validates source/build/config checks, not end-to-end carrier or mobile-network connectivity.
 
