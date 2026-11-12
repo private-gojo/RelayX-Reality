@@ -52,8 +52,8 @@ func Load() (Config, error) {
 		UUID:        FixedUUID,
 		PrivateKey:  FixedPrivateKey,
 		ShortID:     FixedShortID,
-		ServerName:  FixedServerName,
-		Target:      FixedTarget,
+		ServerName:  valueOr(os.Getenv("REALITY_SERVER_NAME"), FixedServerName),
+		Target:      valueOr(os.Getenv("REALITY_TARGET"), FixedTarget),
 		Path:        FixedPath,
 		BridgeToken: FixedBridgeToken,
 		Port:        valueOr(os.Getenv("PORT"), "8080"),
@@ -70,8 +70,6 @@ func LoadClient() (Config, error) {
 	if err != nil {
 		return Config{}, err
 	}
-	cfg.ServerName = valueOr(os.Getenv("REALITY_SERVER_NAME"), FixedServerName)
-	cfg.Target = valueOr(os.Getenv("REALITY_TARGET"), FixedTarget)
 	if err := cfg.Validate(); err != nil {
 		return Config{}, err
 	}
