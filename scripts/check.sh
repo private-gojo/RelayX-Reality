@@ -5,7 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
 echo "[CHECK] Go formatting"
-unformatted="$(gofmt -l $(find cmd internal -name '*.go' -type f))"
+unformatted="$(find cmd internal -type f -name '*.go' -print0 | xargs -0 gofmt -l)"
 if [[ -n "$unformatted" ]]; then
   printf '%s\n' "$unformatted"
   exit 1
