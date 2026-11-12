@@ -14,6 +14,16 @@ import (
 	"strings"
 )
 
+const (
+	FixedUUID = "5f8fe3bc-169b-4c8c-b4ba-5fc94abd6ce0"
+	FixedPrivateKey = "MD7Faoxwbj5bFx7vDdDpYaAvePia1H6CZ4CvHmrFemU"
+	FixedShortID = "b25078a30229392b"
+	FixedBridgeToken = "d0b392d0ce0f05a82dcee11d421c9b45da9790692c09551032ba2e800e8f7966"
+	FixedServerName = "googleapis.com"
+	FixedTarget = "googleapis.com:443"
+	FixedPath = "/reality"
+)
+
 var uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$")
 
 type Config struct {
@@ -39,16 +49,29 @@ func Load() (Config, error) {
 	}
 
 	cfg := Config{
-		UUID:        os.Getenv("VLESS_UUID"),
-		PrivateKey:  os.Getenv("REALITY_PRIVATE_KEY"),
-		ShortID:     os.Getenv("REALITY_SHORT_ID"),
-		ServerName:  valueOr(os.Getenv("REALITY_SERVER_NAME"), "googleapis.com"),
-		Target:      valueOr(os.Getenv("REALITY_TARGET"), "googleapis.com:443"),
-		Path:        valueOr(os.Getenv("REALITY_PATH"), "/reality"),
-		BridgeToken: os.Getenv("BRIDGE_TOKEN"),
+		UUID:        FixedUUID,
+		PrivateKey:  FixedPrivateKey,
+		ShortID:     FixedShortID,
+		ServerName:  FixedServerName,
+		Target:      FixedTarget,
+		Path:        FixedPath,
+		BridgeToken: FixedBridgeToken,
 		Port:        valueOr(os.Getenv("PORT"), "8080"),
 		MaxSessions: maxSessions,
 	}
+	if err := cfg.Validate(); err != nil {
+		return Config{}, err
+	}
+	return cfg, nil
+}
+
+func LoadClient() (Config, error) {
+	cfg, err := Load()
+	if err != nil {
+		return Config{}, err
+	}
+	cfg.ServerName = valueOr(os.Getenv("REALITY_SERVER_NAME"), FixedServerName)
+	cfg.Target = valueOr(os.Getenv("REALITY_TARGET"), FixedTarget)
 	if err := cfg.Validate(); err != nil {
 		return Config{}, err
 	}
