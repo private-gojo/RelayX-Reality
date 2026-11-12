@@ -27,7 +27,8 @@ jobs:
 
       - name: Verify formatting
         run: |
-          test -z "$(gofmt -l $(find cmd internal -name '*.go' -type f))"
+          unformatted="$(find cmd internal -type f -name '*.go' -print0 | xargs -0 gofmt -l)"
+          test -z "$unformatted"
 
       - name: Verify module lock
         run: |
