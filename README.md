@@ -48,12 +48,12 @@ Docker Hub publishing expects repository secrets named DOCKERHUB_USERNAME and DO
 
 1. Install Go and Xray in Termux.
 2. Run scripts/start-client.sh.
-3. Enter the Cloud Run run.app hostname, DEST, and SNI when prompted. The baked server defaults are googleapis.com:443 and googleapis.com; client values must match the deployed server settings.
+3. Enter the Cloud Run run.app hostname, DEST, and SNI when prompted. Use the same DEST and SNI values entered during deployment.
 4. Point the Android proxy app to SOCKS5 127.0.0.1:10808.
 
 ## Manual deployment
 
-After the CI checks pass and the image has been published from main, run bash scripts/deploy.sh DOCKERHUB_USERNAME/x-relay-real:latest in Cloud Shell. The script removes obsolete credential environment overrides; no runtime credentials need to be configured. GitHub Actions never deploys to Cloud Run.
+After the CI checks pass and the image has been published from main, run bash scripts/deploy.sh DOCKERHUB_USERNAME/x-relay-real:latest in Cloud Shell. Enter DEST and SNI when prompted; only these non-secret REALITY settings are configured on Cloud Run. Credentials are embedded in the image. GitHub Actions never deploys to Cloud Run.
 
 ## Cloud Run behavior
 
