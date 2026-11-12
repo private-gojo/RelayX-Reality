@@ -38,6 +38,10 @@ jobs:
       - name: Static analysis
         run: go vet ./...
 
+      - name: Cross-compile Android/Linux ARM64 client
+        run: |
+          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -trimpath -o /tmp/relay-arm64 ./cmd/relay
+
       - name: Unit and integration tests
         run: go test -race -cover ./...
 
