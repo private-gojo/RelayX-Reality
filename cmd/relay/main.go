@@ -163,16 +163,34 @@ func validateXrayConfig() error {
 	if err != nil {
 		return err
 	}
-	configPath, cleanup, err := writeTempConfig(cfg)
+	serverConfig, err := cfg.ServerJSON()
 	if err != nil {
 		return err
 	}
-	defer cleanup()
-	xrayBin := valueOr(os.Getenv("XRAY_BIN"), "/usr/local/bin/xray")
-	if err := testXrayConfig(xrayBin, configPath); err != nil {
+	serverPath, cleanupServer, err := writeTempData(serverConfig)
+	if err != nil {
 		return err
 	}
-	log.Printf("[CHECK] Xray configuration accepted")
+	defer cleanupServer()
+
+	clientConfig, err := cfg.ClientJSON()
+	if err != nil {
+		return err
+	}
+	clientPath, cleanupClient, err := writeTempData(clientConfig)
+	if err != nil {
+		return err
+	}
+	defer cleanupClient()
+
+	xrayBin := valueOr(os.Getenv("XRAY_BIN"), "/usr/local/bin/xray")
+	if err := testXrayConfig(xrayBin, serverPath); err != nil {
+		return fmt.Errorf("server config validation failed: %w", err)
+	}
+	if err := testXrayConfig(xrayBin, clientPath); err != nil {
+		return fmt.Errorf("client config validation failed: %w", err)
+	}
+	log.Printf("[CHECK] server and client Xray configurations accepted")
 	return nil
 }
 
@@ -181,6 +199,10 @@ func writeTempConfig(cfg config.Config) (string, func(), error) {
 	if err != nil {
 		return "", nil, err
 	}
+	return writeTempData(data)
+}
+
+func writeTempData(data []byte) (string, func(), error) {
 	file, err := os.CreateTemp("", "relayx-xray-*.json")
 	if err != nil {
 		return "", nil, err
