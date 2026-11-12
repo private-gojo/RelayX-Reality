@@ -22,6 +22,8 @@ echo "[CHECK] Unit and WebSocket integration tests"
 go test -race -cover ./...
 
 echo "[CHECK] Shell syntax"
-bash -n scripts/*.sh
+for script in scripts/*.sh; do
+  bash -n "$script"
+done
 
 echo "[OK] All local source checks passed."
