@@ -32,7 +32,7 @@ The local scripts/init.sh creates a .env file once. It does not overwrite existi
 - cmd/relay: server, client adapter, config exporter, and Xray config validator.
 - internal/bridge: WebSocket/TCP stream bridge, bearer authentication, session cap, and integration tests.
 - internal/config: credential validation and Xray JSON generation.
-- scripts: initialization, checks, client config export, and client startup.
+- scripts: initialization, checks, client config export, client startup, and manual Cloud Run deployment.
 - Dockerfile: Go bridge plus pinned Xray runtime.
 - .github/workflows/ci.yml: source validation, Docker build, Xray config check, and Docker Hub publish on main only.
 
@@ -51,6 +51,10 @@ Docker Hub publishing expects repository secrets named DOCKERHUB_USERNAME and DO
 3. Install Go and Xray in Termux.
 4. Run scripts/start-client.sh.
 5. Point the Android proxy app to SOCKS5 127.0.0.1:10808.
+
+## Manual deployment
+
+After the CI checks pass and the image has been published from main, run bash scripts/deploy.sh DOCKERHUB_USERNAME/x-relay-real:latest in Cloud Shell. The script reads the persistent credentials from .env. GitHub Actions never deploys to Cloud Run.
 
 ## Cloud Run behavior
 
