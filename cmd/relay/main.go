@@ -120,7 +120,11 @@ func runServer() error {
 func runClient() error {
 	localAddr := valueOr(os.Getenv("LOCAL_ADDR"), "127.0.0.1:11000")
 	remoteURL := os.Getenv("REMOTE_WS_URL")
-	token := os.Getenv("BRIDGE_TOKEN")
+	cfg, err := config.Load()
+	if err != nil {
+		return err
+	}
+	token := cfg.BridgeToken
 	maxSessions := 256
 	if value := os.Getenv("MAX_SESSIONS"); value != "" {
 		n, err := strconv.Atoi(value)
@@ -139,7 +143,7 @@ func runClient() error {
 }
 
 func writeClientConfig() error {
-	cfg, err := config.Load()
+	cfg, err := config.LoadClient()
 	if err != nil {
 		return err
 	}
