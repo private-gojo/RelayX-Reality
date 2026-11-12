@@ -17,6 +17,7 @@ import (
 const (
 	FixedUUID        = "5f8fe3bc-169b-4c8c-b4ba-5fc94abd6ce0"
 	FixedPrivateKey  = "MD7Faoxwbj5bFx7vDdDpYaAvePia1H6CZ4CvHmrFemU"
+	FixedPublicKey   = "xaTNSdK2aQv7ND8DxZcej-dtiEldJZUIRCoQHXkPwFw"
 	FixedShortID     = "b25078a30229392b"
 	FixedBridgeToken = "d0b392d0ce0f05a82dcee11d421c9b45da9790692c09551032ba2e800e8f7966"
 	FixedServerName  = "googleapis.com"
@@ -125,7 +126,11 @@ func (c Config) PublicKey() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return base64.RawURLEncoding.EncodeToString(privateKey.PublicKey().Bytes()), nil
+	derived := base64.RawURLEncoding.EncodeToString(privateKey.PublicKey().Bytes())
+	if derived != FixedPublicKey {
+		return "", errors.New("embedded REALITY public/private key pair does not match")
+	}
+	return FixedPublicKey, nil
 }
 
 func (c Config) ServerJSON() ([]byte, error) {
