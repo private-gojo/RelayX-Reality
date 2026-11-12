@@ -20,8 +20,8 @@ const (
 	FixedPublicKey   = "xaTNSdK2aQv7ND8DxZcej-dtiEldJZUIRCoQHXkPwFw"
 	FixedShortID     = "b25078a30229392b"
 	FixedBridgeToken = "d0b392d0ce0f05a82dcee11d421c9b45da9790692c09551032ba2e800e8f7966"
-	FixedServerName  = "googleapis.com"
-	FixedTarget      = "googleapis.com:443"
+	FixedServerName  = "firebaseremoteconfigrealtime.googleapis.com"
+	FixedTarget      = "firebaseremoteconfigrealtime.googleapis.com:443"
 	FixedPath        = "/reality"
 )
 
@@ -53,8 +53,8 @@ func Load() (Config, error) {
 		UUID:        FixedUUID,
 		PrivateKey:  FixedPrivateKey,
 		ShortID:     FixedShortID,
-		ServerName:  valueOr(os.Getenv("REALITY_SERVER_NAME"), FixedServerName),
-		Target:      valueOr(os.Getenv("REALITY_TARGET"), FixedTarget),
+		ServerName:  FixedServerName,
+		Target:      FixedTarget,
 		Path:        FixedPath,
 		BridgeToken: FixedBridgeToken,
 		Port:        valueOr(os.Getenv("PORT"), "8080"),
@@ -102,7 +102,7 @@ func (c Config) Validate() error {
 
 	host, targetPort, err := net.SplitHostPort(c.Target)
 	if err != nil || host == "" || targetPort != "443" {
-		return errors.New("REALITY_TARGET must be a host on port 443, for example googleapis.com:443")
+		return errors.New("REALITY_TARGET must be a host on port 443, for example firebaseremoteconfigrealtime.googleapis.com:443")
 	}
 	if !strings.HasPrefix(c.Path, "/") || strings.ContainsAny(c.Path, "?# \t\r\n") {
 		return errors.New("REALITY_PATH must start with / and must not contain a query, fragment, or whitespace")
