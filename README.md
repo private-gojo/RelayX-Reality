@@ -17,13 +17,15 @@ WebSocket + REALITY is not a native Xray transport combination. Xray documents R
 | Xray | 26.11.9 |
 | Docker image | DockerHub username / x-relay-real |
 | XHTTP path | /reality |
-| REALITY SNI | googleapis.com |
-| REALITY target | googleapis.com:443 |
+| REALITY SNI | firebaseremoteconfigrealtime.googleapis.com |
+| REALITY target | firebaseremoteconfigrealtime.googleapis.com:443 |
 | XHTTP mode | auto |
 | Xray server listener | 127.0.0.1:10000 |
 | Cloud Run listener | PORT, default 8080 |
 | Client adapter | 127.0.0.1:11000 |
 | Local SOCKS5 | 127.0.0.1:10808 |
+
+REALITY destination and SNI are fixed in the Go configuration and generated server/client configurations. They are not deployment or client-script prompts. The Cloud Run run.app hostname remains the only required client input.
 
 Test credentials are embedded in the Go binary and container image. Cloud Run does not need credential environment variables. These fixed credentials are public test credentials and must not be used for production.
 
@@ -48,12 +50,12 @@ Docker Hub publishing expects repository secrets named DOCKERHUB_USERNAME and DO
 
 1. Install Go and Xray in Termux.
 2. Run scripts/start-client.sh.
-3. Enter the Cloud Run run.app hostname, DEST, and SNI when prompted. Use the same DEST and SNI values entered during deployment.
+3. Enter only the Cloud Run run.app hostname or URL when prompted.
 4. Point the Android proxy app to SOCKS5 127.0.0.1:10808.
 
 ## Manual deployment
 
-After the CI checks pass and the image has been published from main, run bash scripts/deploy.sh DOCKERHUB_USERNAME/x-relay-real:latest in Cloud Shell. Enter DEST and SNI when prompted; only these non-secret REALITY settings are configured on Cloud Run. Credentials are embedded in the image. GitHub Actions never deploys to Cloud Run.
+After the CI checks pass and the image has been published from main, run bash scripts/deploy.sh DOCKERHUB_USERNAME/x-relay-real:latest in Cloud Shell. No DEST/SNI prompts or REALITY environment variables are required. Credentials and REALITY destination/SNI are embedded in the application configuration. GitHub Actions never deploys to Cloud Run.
 
 ## Cloud Run behavior
 
