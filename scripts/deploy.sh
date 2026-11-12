@@ -8,6 +8,13 @@ SERVICE_NAME="${SERVICE_NAME:-relay-real}"
 REGION="${REGION:-asia-east1}"
 MAX_SESSIONS="${MAX_SESSIONS:-256}"
 
+read -r -p "REALITY DEST [googleapis.com:443]: " REALITY_TARGET
+read -r -p "REALITY SNI [googleapis.com]: " REALITY_SERVER_NAME
+REALITY_TARGET="${REALITY_TARGET:-googleapis.com:443}"
+REALITY_SERVER_NAME="${REALITY_SERVER_NAME:-googleapis.com}"
+[[ "$REALITY_TARGET" == *:443 ]] || { echo "[ERROR] DEST must use port 443." >&2; exit 1; }
+[[ -n "$REALITY_SERVER_NAME" && "$REALITY_SERVER_NAME" != *[[:space:]/]* ]] || { echo "[ERROR] Invalid SNI hostname." >&2; exit 1; }
+
 echo "[DEPLOY] service=$SERVICE_NAME region=$REGION image=$image"
 gcloud run deploy "$SERVICE_NAME" \
   --image "$image" \
@@ -19,7 +26,7 @@ gcloud run deploy "$SERVICE_NAME" \
   --concurrency "$MAX_SESSIONS" \
   --cpu 2 \
   --memory 1Gi \
-  --remove-env-vars VLESS_UUID,REALITY_PRIVATE_KEY,REALITY_SHORT_ID,REALITY_SERVER_NAME,REALITY_TARGET,REALITY_PATH,BRIDGE_TOKEN \
+  --set-env-vars "REALITY_TARGET=$REALITY_TARGET,REALITY_SERVER_NAME=$REALITY_SERVER_NAME" \
   --quiet
 
 gcloud run services describe "$SERVICE_NAME" \
