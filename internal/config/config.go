@@ -15,13 +15,13 @@ import (
 )
 
 const (
-	FixedUUID = "5f8fe3bc-169b-4c8c-b4ba-5fc94abd6ce0"
-	FixedPrivateKey = "MD7Faoxwbj5bFx7vDdDpYaAvePia1H6CZ4CvHmrFemU"
-	FixedShortID = "b25078a30229392b"
+	FixedUUID        = "5f8fe3bc-169b-4c8c-b4ba-5fc94abd6ce0"
+	FixedPrivateKey  = "MD7Faoxwbj5bFx7vDdDpYaAvePia1H6CZ4CvHmrFemU"
+	FixedShortID     = "b25078a30229392b"
 	FixedBridgeToken = "d0b392d0ce0f05a82dcee11d421c9b45da9790692c09551032ba2e800e8f7966"
-	FixedServerName = "googleapis.com"
-	FixedTarget = "googleapis.com:443"
-	FixedPath = "/reality"
+	FixedServerName  = "googleapis.com"
+	FixedTarget      = "googleapis.com:443"
+	FixedPath        = "/reality"
 )
 
 var uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$")
