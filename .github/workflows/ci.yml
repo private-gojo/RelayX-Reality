@@ -1,0 +1,123 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  source:
+    name: Go and shell validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.27.4"
+          cache: true
+
+      - name: Verify formatting
+        run: |
+          test -z "$(gofmt -l $(find cmd internal -name '*.go' -type f))"
+
+      - name: Verify module lock
+        run: |
+          go mod download
+          go mod verify
+          go mod tidy -diff
+
+      - name: Static analysis
+        run: go vet ./...
+
+      - name: Unit and integration tests
+        run: go test -race -cover ./...
+
+      - name: Shell syntax
+        run: bash -n scripts/*.sh
+
+      - name: Workflow syntax
+        run: go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 .github/workflows/ci.yml
+
+  container:
+    name: Docker and Xray validation
+    runs-on: ubuntu-latest
+    needs: source
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build local image
+        run: docker buildx build --platform linux/amd64 --load --tag relayx-reality:ci .
+
+      - name: Generate CI X25519 key
+        id: reality
+        shell: bash
+        run: |
+          key_file="$(mktemp)"
+          trap 'rm -f "$key_file"' EXIT
+          openssl genpkey -algorithm X25519 -out "$key_file"
+          private_key="$(openssl pkey -in "$key_file" -outform DER | tail -c 32 | python3 -c 'import base64,sys; print(base64.urlsafe_b64encode(sys.stdin.buffer.read()).decode().rstrip("="))')"
+          echo "private_key=$private_key" >> "$GITHUB_OUTPUT"
+
+      - name: Validate generated Xray config
+        env:
+          VLESS_UUID: "47be59a9-103b-4065-9c3a-ebb9ecf8ffd3"
+          REALITY_PRIVATE_KEY: ${{ steps.reality.outputs.private_key }}
+          REALITY_SHORT_ID: "0123456789abcdef"
+          REALITY_SERVER_NAME: "googleapis.com"
+          REALITY_TARGET: "googleapis.com:443"
+          REALITY_PATH: "/reality"
+          BRIDGE_TOKEN: "ci-validation-token-not-a-secret-000000000000"
+        run: |
+          docker run --rm --entrypoint /app/relay \
+            -e VLESS_UUID -e REALITY_PRIVATE_KEY -e REALITY_SHORT_ID \
+            -e REALITY_SERVER_NAME -e REALITY_TARGET -e REALITY_PATH -e BRIDGE_TOKEN \
+            relayx-reality:ci validate-config
+
+      - name: Verify pinned Xray version
+        run: |
+          docker run --rm --entrypoint /usr/local/bin/xray relayx-reality:ci version | grep -F "26.11.9"
+
+  publish:
+    name: Publish Docker image
+    runs-on: ubuntu-latest
+    needs:
+      - source
+      - container
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build and publish
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/x-relay-real:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/x-relay-real:sha-${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

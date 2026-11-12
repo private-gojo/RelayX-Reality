@@ -1,0 +1,9 @@
+.git
+.github
+.env
+.env.*
+!.env.example
+client/
+bin/
+*.pem
+*.key
