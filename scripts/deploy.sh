@@ -1,28 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "$ROOT_DIR"
-
-[[ -f .env ]] || { echo "[ERROR] .env missing; run scripts/init.sh first." >&2; exit 1; }
-set -a
-source .env
-set +a
-
 image="${1:?Usage: bash scripts/deploy.sh DOCKERHUB_USERNAME/x-relay-real:tag}"
-
 command -v gcloud >/dev/null 2>&1 || { echo "[ERROR] Google Cloud CLI is required." >&2; exit 1; }
 
-: "${VLESS_UUID:?VLESS_UUID missing in .env}"
-: "${REALITY_PRIVATE_KEY:?REALITY_PRIVATE_KEY missing in .env}"
-: "${REALITY_SHORT_ID:?REALITY_SHORT_ID missing in .env}"
-: "${BRIDGE_TOKEN:?BRIDGE_TOKEN missing in .env}"
-
-SERVICE_NAME="${SERVICE_NAME:-relayx-reality}"
+SERVICE_NAME="${SERVICE_NAME:-relay-real}"
 REGION="${REGION:-asia-east1}"
 MAX_SESSIONS="${MAX_SESSIONS:-256}"
 
-runtime_env="VLESS_UUID=$VLESS_UUID,REALITY_PRIVATE_KEY=$REALITY_PRIVATE_KEY,REALITY_SHORT_ID=$REALITY_SHORT_ID,REALITY_SERVER_NAME=${REALITY_SERVER_NAME:-googleapis.com},REALITY_TARGET=${REALITY_TARGET:-googleapis.com:443},REALITY_PATH=${REALITY_PATH:-/reality},BRIDGE_TOKEN=$BRIDGE_TOKEN,MAX_SESSIONS=$MAX_SESSIONS"
+read -r -p "REALITY DEST [googleapis.com:443]: " REALITY_TARGET
+read -r -p "REALITY SNI [googleapis.com]: " REALITY_SERVER_NAME
+REALITY_TARGET="${REALITY_TARGET:-googleapis.com:443}"
+REALITY_SERVER_NAME="${REALITY_SERVER_NAME:-googleapis.com}"
+[[ "$REALITY_TARGET" == *:443 ]] || { echo "[ERROR] DEST must use port 443." >&2; exit 1; }
+[[ -n "$REALITY_SERVER_NAME" && "$REALITY_SERVER_NAME" != *[[:space:]/]* ]] || { echo "[ERROR] Invalid SNI hostname." >&2; exit 1; }
 
 echo "[DEPLOY] service=$SERVICE_NAME region=$REGION image=$image"
 gcloud run deploy "$SERVICE_NAME" \
@@ -35,7 +26,7 @@ gcloud run deploy "$SERVICE_NAME" \
   --concurrency "$MAX_SESSIONS" \
   --cpu 2 \
   --memory 1Gi \
-  --set-env-vars "$runtime_env" \
+  --set-env-vars "REALITY_TARGET=$REALITY_TARGET,REALITY_SERVER_NAME=$REALITY_SERVER_NAME" \
   --quiet
 
 gcloud run services describe "$SERVICE_NAME" \

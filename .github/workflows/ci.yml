@@ -69,30 +69,9 @@ jobs:
       - name: Build local image
         run: docker buildx build --platform linux/amd64 --load --tag relayx-reality:ci .
 
-      - name: Generate CI X25519 key
-        id: reality
-        shell: bash
+      - name: Validate baked Xray config
         run: |
-          key_file="$(mktemp)"
-          trap 'rm -f "$key_file"' EXIT
-          openssl genpkey -algorithm X25519 -out "$key_file"
-          private_key="$(openssl pkey -in "$key_file" -outform DER | tail -c 32 | python3 -c 'import base64,sys; print(base64.urlsafe_b64encode(sys.stdin.buffer.read()).decode().rstrip("="))')"
-          echo "private_key=$private_key" >> "$GITHUB_OUTPUT"
-
-      - name: Validate generated Xray config
-        env:
-          VLESS_UUID: "47be59a9-103b-4065-9c3a-ebb9ecf8ffd3"
-          REALITY_PRIVATE_KEY: ${{ steps.reality.outputs.private_key }}
-          REALITY_SHORT_ID: "0123456789abcdef"
-          REALITY_SERVER_NAME: "googleapis.com"
-          REALITY_TARGET: "googleapis.com:443"
-          REALITY_PATH: "/reality"
-          BRIDGE_TOKEN: "ci-validation-token-not-a-secret-000000000000"
-        run: |
-          docker run --rm --entrypoint /app/relay \
-            -e VLESS_UUID -e REALITY_PRIVATE_KEY -e REALITY_SHORT_ID \
-            -e REALITY_SERVER_NAME -e REALITY_TARGET -e REALITY_PATH -e BRIDGE_TOKEN \
-            relayx-reality:ci validate-config
+          docker run --rm --entrypoint /app/relay relayx-reality:ci validate-config
 
       - name: Verify pinned Xray version
         run: |
