@@ -25,7 +25,7 @@ WebSocket + REALITY is not a native Xray transport combination. Xray documents R
 | Client adapter | 127.0.0.1:11000 |
 | Local SOCKS5 | 127.0.0.1:10808 |
 
-The local scripts/init.sh creates a .env file once. It does not overwrite existing credentials. Keep .env and generated client config private.
+Test credentials are embedded in the Go binary and container image. Cloud Run does not need credential environment variables. These fixed credentials are public test credentials and must not be used for production.
 
 ## Source layout
 
@@ -46,15 +46,14 @@ Docker Hub publishing expects repository secrets named DOCKERHUB_USERNAME and DO
 
 ## Client
 
-1. Run scripts/init.sh once.
-2. After Cloud Run exists, set REMOTE_WS_URL to wss://SERVICE_HOST/reality in .env.
-3. Install Go and Xray in Termux.
-4. Run scripts/start-client.sh.
-5. Point the Android proxy app to SOCKS5 127.0.0.1:10808.
+1. Install Go and Xray in Termux.
+2. Run scripts/start-client.sh.
+3. Enter the Cloud Run run.app hostname, DEST, and SNI when prompted. The baked server defaults are googleapis.com:443 and googleapis.com; client values must match the deployed server settings.
+4. Point the Android proxy app to SOCKS5 127.0.0.1:10808.
 
 ## Manual deployment
 
-After the CI checks pass and the image has been published from main, run bash scripts/deploy.sh DOCKERHUB_USERNAME/x-relay-real:latest in Cloud Shell. The script reads the persistent credentials from .env. GitHub Actions never deploys to Cloud Run.
+After the CI checks pass and the image has been published from main, run bash scripts/deploy.sh DOCKERHUB_USERNAME/x-relay-real:latest in Cloud Shell. The script removes obsolete credential environment overrides; no runtime credentials need to be configured. GitHub Actions never deploys to Cloud Run.
 
 ## Cloud Run behavior
 
