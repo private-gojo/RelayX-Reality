@@ -10,7 +10,7 @@ import (
 func validConfig() Config {
 	return Config{
 		UUID:        "47be59a9-103b-4065-9c3a-ebb9ecf8ffd3",
-		PrivateKey:  base64.RawURLEncoding.EncodeToString(make([]byte, 32)),
+		PrivateKey:  FixedPrivateKey,
 		ShortID:     "0123456789abcdef",
 		ServerName:  "googleapis.com",
 		Target:      "googleapis.com:443",
@@ -74,8 +74,8 @@ func TestClientJSONUsesDerivedREALITYPassword(t *testing.T) {
 	outbound := decoded["outbounds"].([]any)[0].(map[string]any)
 	stream := outbound["streamSettings"].(map[string]any)
 	reality := stream["realitySettings"].(map[string]any)
-	if reality["password"] == "" {
-		t.Fatal("REALITY password/public key was not derived")
+	if reality["password"] != FixedPublicKey {
+		t.Fatalf("unexpected REALITY password/public key: %v", reality["password"])
 	}
 	if _, exists := reality["publicKey"]; exists {
 		t.Fatal("legacy publicKey field must not be emitted")
