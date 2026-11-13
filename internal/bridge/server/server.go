@@ -2,7 +2,6 @@ package server
 
 import (
 	"crypto/subtle"
-	"log"
 	"net"
 	"net/http"
 	"strings"
