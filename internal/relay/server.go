@@ -69,12 +69,14 @@ func RunServer() error {
 	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
 	defer signal.Stop(signals)
 
+	var runErr error
 	select {
 	case sig := <-signals:
 		log.Printf("[SERVER] received signal=%s", sig)
 	case err := <-httpDone:
 		if !errors.Is(err, http.ErrServerClosed) {
-			log.Printf("[SERVER] HTTP server stopped: %v", err)
+			runErr = fmt.Errorf("HTTP server stopped: %w", err)
+			log.Printf("[SERVER] %v", runErr)
 		}
 	case err := <-xrayDone:
 		bridgeServer.CloseAll()
@@ -93,7 +95,7 @@ func RunServer() error {
 		_ = xrayCmd.Process.Kill()
 		<-xrayDone
 	}
-	return nil
+	return runErr
 }
 
 func valueOr(value, fallback string) string {
