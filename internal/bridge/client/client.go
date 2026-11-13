@@ -98,4 +98,3 @@ func (c *Client) handleLocal(localConn net.Conn) {
 	defer ws.Close()
 	connection.Relay(localConn, ws)
 }
-

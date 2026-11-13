@@ -115,4 +115,3 @@ func authorized(header, token string) bool {
 	return len(presented) == len(token) &&
 		subtle.ConstantTimeCompare([]byte(presented), []byte(token)) == 1
 }
-
