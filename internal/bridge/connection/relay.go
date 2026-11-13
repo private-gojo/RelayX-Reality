@@ -3,7 +3,6 @@ package connection
 import (
 	"io"
 	"net"
-	"sync"
 
 	gorilla "github.com/gorilla/websocket"
 	wsencap "github.com/private-gojo/relayx-reality/internal/encapsulation/websocket"
@@ -67,5 +66,3 @@ func writeAll(writer net.Conn, data []byte) error {
 	}
 	return nil
 }
-
-var _ sync.Locker
