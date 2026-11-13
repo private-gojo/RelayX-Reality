@@ -4,7 +4,6 @@ import (
 	"crypto/ecdh"
 	"encoding/base64"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
@@ -131,91 +130,6 @@ func (c Config) PublicKey() (string, error) {
 		return "", errors.New("embedded REALITY public/private key pair does not match")
 	}
 	return FixedPublicKey, nil
-}
-
-func (c Config) ServerJSON() ([]byte, error) {
-	config := map[string]any{
-		"log": map[string]any{"loglevel": "warning"},
-		"inbounds": []any{
-			map[string]any{
-				"listen":   "127.0.0.1",
-				"port":     10000,
-				"protocol": "vless",
-				"settings": map[string]any{
-					"clients":    []any{map[string]any{"id": c.UUID}},
-					"decryption": "none",
-				},
-				"streamSettings": map[string]any{
-					"method":   "xhttp",
-					"security": "reality",
-					"realitySettings": map[string]any{
-						"show":        false,
-						"target":      c.Target,
-						"xver":        0,
-						"serverNames": []string{c.ServerName},
-						"privateKey":  c.PrivateKey,
-						"shortIds":    []string{c.ShortID},
-					},
-					"xhttpSettings": map[string]any{
-						"path": c.Path,
-						"mode": "auto",
-					},
-				},
-			},
-		},
-		"outbounds": []any{map[string]any{"protocol": "freedom", "tag": "direct"}},
-	}
-	return json.MarshalIndent(config, "", "  ")
-}
-
-func (c Config) ClientJSON() ([]byte, error) {
-	publicKey, err := c.PublicKey()
-	if err != nil {
-		return nil, err
-	}
-	config := map[string]any{
-		"log": map[string]any{"loglevel": "warning"},
-		"inbounds": []any{
-			map[string]any{
-				"listen":   "127.0.0.1",
-				"port":     10808,
-				"protocol": "socks",
-				"settings": map[string]any{"udp": true},
-			},
-		},
-		"outbounds": []any{
-			map[string]any{
-				"tag":      "proxy",
-				"protocol": "vless",
-				"settings": map[string]any{
-					"vnext": []any{
-						map[string]any{
-							"address": "127.0.0.1",
-							"port":    11000,
-							"users": []any{
-								map[string]any{"id": c.UUID, "encryption": "none"},
-							},
-						},
-					},
-				},
-				"streamSettings": map[string]any{
-					"method":   "xhttp",
-					"security": "reality",
-					"realitySettings": map[string]any{
-						"serverName":  c.ServerName,
-						"fingerprint": "chrome",
-						"password":    publicKey,
-						"shortId":     c.ShortID,
-					},
-					"xhttpSettings": map[string]any{
-						"path": c.Path,
-						"mode": "auto",
-					},
-				},
-			},
-		},
-	}
-	return json.MarshalIndent(config, "", "  ")
 }
 
 func valueOr(value, fallback string) string {
