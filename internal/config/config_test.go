@@ -40,3 +40,15 @@ func TestConfigRejectsInvalidPrivateKey(t *testing.T) {
 		t.Fatal("expected invalid private key to fail")
 	}
 }
+
+func TestLoadClientUsesSharedConfiguration(t *testing.T) {
+	t.Setenv("MAX_SESSIONS", "17")
+
+	cfg, err := LoadClient()
+	if err != nil {
+		t.Fatalf("LoadClient() failed: %v", err)
+	}
+	if cfg.MaxSessions != 17 {
+		t.Fatalf("MaxSessions = %d, want 17", cfg.MaxSessions)
+	}
+}
