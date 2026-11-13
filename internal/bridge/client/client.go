@@ -8,7 +8,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"sync"
 
 	gorilla "github.com/gorilla/websocket"
 	"github.com/private-gojo/relayx-reality/internal/bridge/connection"
@@ -100,4 +99,3 @@ func (c *Client) handleLocal(localConn net.Conn) {
 	connection.Relay(localConn, ws)
 }
 
-var _ sync.Locker
