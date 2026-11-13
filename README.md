@@ -31,12 +31,18 @@ Test credentials are embedded in the Go binary and container image. Cloud Run do
 
 ## Source layout
 
-- cmd/relay: server, client adapter, config exporter, and Xray config validator.
-- internal/bridge: WebSocket/TCP stream bridge, bearer authentication, session cap, and integration tests.
-- internal/config: credential validation and Xray JSON generation.
-- scripts: initialization, checks, client config export, client startup, and manual Cloud Run deployment.
-- Dockerfile: Go bridge plus pinned Xray runtime.
-- .github/workflows/ci.yml: source validation, Docker build, Xray config check, and Docker Hub publish on main only.
+- `cmd/relay/`: command dispatch, client config export, and Xray config validation.
+- `internal/config/`: embedded settings, environment loading, and credential validation.
+- `internal/xray/config/`: generated server/client Xray JSON; server inbound and outbound definitions are isolated.
+- `internal/xray/process/`: temporary config files, Xray validation, and listener readiness checks.
+- `internal/encapsulation/websocket/`: WebSocket upgrade, dialer, frame limits, deadlines, and keepalive.
+- `internal/bridge/server/`: authenticated Cloud Run WebSocket endpoint and active-session lifecycle.
+- `internal/bridge/client/`: local TCP-to-WebSocket adapter.
+- `internal/bridge/connection/`: bidirectional TCP/WebSocket byte-stream forwarding.
+- `internal/relay/`: server startup/shutdown and client orchestration.
+- `scripts/`: initialization, checks, client config export, client startup, and manual Cloud Run deployment.
+- `Dockerfile`: Go bridge plus pinned Xray runtime.
+- `.github/workflows/ci.yml`: source validation, Docker build, Xray config check, and Docker Hub publish on main only.
 
 ## CI validation
 
@@ -49,13 +55,13 @@ Docker Hub publishing expects repository secrets named DOCKERHUB_USERNAME and DO
 ## Client
 
 1. Install Go and Xray in Termux.
-2. Run scripts/start-client.sh.
+2. Run `scripts/start-client.sh`.
 3. Enter only the Cloud Run run.app hostname or URL when prompted.
 4. Point the Android proxy app to SOCKS5 127.0.0.1:10808.
 
 ## Manual deployment
 
-After the CI checks pass and the image has been published from main, run bash scripts/deploy.sh DOCKERHUB_USERNAME/x-relay-real:latest in Cloud Shell. No DEST/SNI prompts or REALITY environment variables are required. Credentials and REALITY destination/SNI are embedded in the application configuration. GitHub Actions never deploys to Cloud Run.
+After the CI checks pass and the image has been published from main, run `bash scripts/deploy.sh DOCKERHUB_USERNAME/x-relay-real:latest` in Cloud Shell. No DEST/SNI prompts or REALITY environment variables are required. Credentials and REALITY destination/SNI are embedded in the application configuration. GitHub Actions never deploys to Cloud Run.
 
 ## Cloud Run behavior
 

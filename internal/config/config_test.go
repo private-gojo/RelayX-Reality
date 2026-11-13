@@ -1,7 +1,6 @@
 package config
 
 import (
-	"encoding/json"
 	"strings"
 	"testing"
 )
@@ -39,55 +38,5 @@ func TestConfigRejectsInvalidPrivateKey(t *testing.T) {
 	cfg.PrivateKey = "not-a-key"
 	if err := cfg.Validate(); err == nil {
 		t.Fatal("expected invalid private key to fail")
-	}
-}
-
-func TestServerJSONUsesFixedFirebaseREALITYDestination(t *testing.T) {
-	data, err := validConfig().ServerJSON()
-	if err != nil {
-		t.Fatal(err)
-	}
-	var decoded map[string]any
-	if err := json.Unmarshal(data, &decoded); err != nil {
-		t.Fatalf("invalid JSON: %v", err)
-	}
-	inbound := decoded["inbounds"].([]any)[0].(map[string]any)
-	stream := inbound["streamSettings"].(map[string]any)
-	if stream["method"] != "xhttp" || stream["security"] != "reality" {
-		t.Fatalf("unexpected transport settings: %#v", stream)
-	}
-	reality := stream["realitySettings"].(map[string]any)
-	if reality["target"] != FixedTarget {
-		t.Fatalf("unexpected REALITY target: %v", reality["target"])
-	}
-	serverNames := reality["serverNames"].([]any)
-	if len(serverNames) != 1 || serverNames[0] != FixedServerName {
-		t.Fatalf("unexpected REALITY serverNames: %#v", serverNames)
-	}
-	if _, exists := stream["network"]; exists {
-		t.Fatal("legacy network field must not be emitted")
-	}
-}
-
-func TestClientJSONUsesFixedFirebaseREALITYServerName(t *testing.T) {
-	data, err := validConfig().ClientJSON()
-	if err != nil {
-		t.Fatal(err)
-	}
-	var decoded map[string]any
-	if err := json.Unmarshal(data, &decoded); err != nil {
-		t.Fatalf("invalid JSON: %v", err)
-	}
-	outbound := decoded["outbounds"].([]any)[0].(map[string]any)
-	stream := outbound["streamSettings"].(map[string]any)
-	reality := stream["realitySettings"].(map[string]any)
-	if reality["password"] != FixedPublicKey {
-		t.Fatalf("unexpected REALITY password/public key: %v", reality["password"])
-	}
-	if reality["serverName"] != FixedServerName {
-		t.Fatalf("unexpected REALITY serverName: %v", reality["serverName"])
-	}
-	if _, exists := reality["publicKey"]; exists {
-		t.Fatal("legacy publicKey field must not be emitted")
 	}
 }
