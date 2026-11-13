@@ -2,7 +2,6 @@ package websocket
 
 import (
 	"net/http"
-	"sync"
 	"time"
 
 	gorilla "github.com/gorilla/websocket"
