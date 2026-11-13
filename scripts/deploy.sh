@@ -8,7 +8,13 @@ SERVICE_NAME="${SERVICE_NAME:-relay-real}"
 REGION="${REGION:-asia-east1}"
 MAX_SESSIONS="${MAX_SESSIONS:-256}"
 
+if ! [[ "$MAX_SESSIONS" =~ ^[0-9]+$ ]] || (( MAX_SESSIONS < 1 || MAX_SESSIONS > 1000 )); then
+  echo "[ERROR] MAX_SESSIONS must be an integer from 1 to 1000." >&2
+  exit 1
+fi
+
 echo "[DEPLOY] service=$SERVICE_NAME region=$REGION image=$image"
+echo "[DEPLOY] max_sessions=$MAX_SESSIONS"
 echo "[DEPLOY] REALITY target and SNI are fixed in the application."
 
 gcloud run deploy "$SERVICE_NAME" \
@@ -19,6 +25,7 @@ gcloud run deploy "$SERVICE_NAME" \
   --port 8080 \
   --timeout 3600 \
   --concurrency "$MAX_SESSIONS" \
+  --update-env-vars "MAX_SESSIONS=$MAX_SESSIONS" \
   --cpu 2 \
   --memory 1Gi \
   --quiet

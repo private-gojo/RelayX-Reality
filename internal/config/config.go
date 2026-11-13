@@ -66,48 +66,41 @@ func Load() (Config, error) {
 }
 
 func LoadClient() (Config, error) {
-	cfg, err := Load()
-	if err != nil {
-		return Config{}, err
-	}
-	if err := cfg.Validate(); err != nil {
-		return Config{}, err
-	}
-	return cfg, nil
+	return Load()
 }
 
 func (c Config) Validate() error {
 	if !uuidPattern.MatchString(c.UUID) {
-		return errors.New("VLESS_UUID must be a valid UUID")
+		return errors.New("embedded VLESS UUID is invalid")
 	}
 
 	privateBytes, err := base64.RawURLEncoding.DecodeString(c.PrivateKey)
 	if err != nil || len(privateBytes) != 32 {
-		return errors.New("REALITY_PRIVATE_KEY must be a 32-byte base64url X25519 private key without padding")
+		return errors.New("embedded REALITY private key must be a 32-byte base64url X25519 key without padding")
 	}
 	if _, err := ecdh.X25519().NewPrivateKey(privateBytes); err != nil {
-		return fmt.Errorf("REALITY_PRIVATE_KEY is invalid: %w", err)
+		return fmt.Errorf("embedded REALITY private key is invalid: %w", err)
 	}
 
 	if len(c.ShortID) < 2 || len(c.ShortID) > 16 || len(c.ShortID)%2 != 0 {
-		return errors.New("REALITY_SHORT_ID must contain 2 to 16 even-count hex characters")
+		return errors.New("embedded REALITY short ID must contain 2 to 16 even-count hex characters")
 	}
 	if _, err := hex.DecodeString(c.ShortID); err != nil {
-		return errors.New("REALITY_SHORT_ID must be hexadecimal")
+		return errors.New("embedded REALITY short ID must be hexadecimal")
 	}
 	if c.ServerName == "" || strings.ContainsAny(c.ServerName, " /\\\t\r\n") {
-		return errors.New("REALITY_SERVER_NAME must be a hostname")
+		return errors.New("embedded REALITY server name must be a hostname")
 	}
 
 	host, targetPort, err := net.SplitHostPort(c.Target)
 	if err != nil || host == "" || targetPort != "443" {
-		return errors.New("REALITY_TARGET must be a host on port 443, for example firebaseremoteconfigrealtime.googleapis.com:443")
+		return errors.New("embedded REALITY target must be a hostname on port 443")
 	}
 	if !strings.HasPrefix(c.Path, "/") || strings.ContainsAny(c.Path, "?# \t\r\n") {
-		return errors.New("REALITY_PATH must start with / and must not contain a query, fragment, or whitespace")
+		return errors.New("embedded XHTTP path must start with / and must not contain a query, fragment, or whitespace")
 	}
 	if len(c.BridgeToken) < 32 {
-		return errors.New("BRIDGE_TOKEN must be at least 32 characters")
+		return errors.New("embedded bridge token must be at least 32 characters")
 	}
 	port, err := strconv.Atoi(c.Port)
 	if err != nil || port < 1 || port > 65535 {
