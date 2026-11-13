@@ -2,7 +2,6 @@ package server
 
 import (
 	"crypto/subtle"
-	"errors"
 	"log"
 	"net"
 	"net/http"
@@ -117,5 +116,3 @@ func authorized(header, token string) bool {
 		subtle.ConstantTimeCompare([]byte(presented), []byte(token)) == 1
 }
 
-var _ = errors.New
-var _ sync.Locker
